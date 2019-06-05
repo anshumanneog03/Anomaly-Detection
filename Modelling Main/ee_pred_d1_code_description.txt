@@ -1,0 +1,82 @@
+###### ee_prep_d1_python.py #######
+
+Code Description ::
+
+
+
+define_param_io()
+
+contains a dictionary param_io which contains the path of home directory, input
+directory etc. It reads the folder paths from config file (base folder paths ) and creates
+the subsequent folders which are required for the process to run.
+
+define_param_prep()
+
+contains a dictionary param_prep. This contains the columns to be read, target variable and
+global mean. The current code overides this manual insertion of the global mean
+of the target and instead calculates it on the entire data.
+
+define_param_model()
+
+contains a dictionary named param_model. the param_model gets the xgboost parameters
+from the config files and stores them. it also has other pre-processing steps parameters 
+like holdout reference date, train_flag etc.
+
+
+define_param_dbc()
+
+contains the dbc dictionary.The dbc dicionary contains several process parameteres 
+directly or indirectly related to the creation of dbc features. For Ex- dt_expression_a
+contains the all the newly created 1way 2 way and 3 way interaction feature cat_ variables. Which 
+are further used to create the mean and stdDev features. 
+
+ee_filter_abnorm()
+
+this function takes the data and removes the unwanted machines, filters the rows which 
+fall below a certain threshold, and also remove the rows for certain machines 
+based on their anomaly period. Finally it removes the na rows from the data.
+
+
+prep_dbc()
+
+this block of code is responsible for creating the dbc features. it is broadly divided 
+into two segment train and validation. during the train period when the input data
+is only limited to the training data then the dbc look up tables are created. For the valid process the dbc look 
+up tables are to be used for scoring and creating new mean/stdev features.
+
+
+ee_prep_d1()
+
+the ee_prep_d1 code prepares the data before modelling by adding support columns 
+and calling the dbc features. Additonally it also creates the z transform variables 
+after the dbc features are created.
+
+additional process added here is, now the binning is done only on train data and then these bins are imported to be used in the holdout data
+similarly the bins are saved in a file called table_bin so that it can be used by test data.
+
+
+
+model_main()
+
+this is the main piece of code which calls and runs all other functions chronologically
+the output of this function is multiple csv and feather files which contain the 
+predicted variable along with the input features. 
+produces the r squared, correlation metrics and the matrix conversion of the input data
+followed by the modelling.
+The main model also saves the training mean and standard deviation of the target variable. Similarly after the prediction is done 
+the model_main function also saves the mean and standard deviation of the validation data for use in outlier detection code.
+
+
+The code has been modified to accomodate Multi Machine model, aggregate model and single  machine model.
+
+
+Additional Notes:
+
+User has to be careful with date, holdout reference date. 
+
+The data must be put in the Input_Data folder before running the code.
+
+For models with current as output feature where we are using multi machine models then user has to check if all dbc lookup tables are getting populated.
+There might be empty dbc lookup tables due to the mininum cell count condition.
+
+In line 459 and 460 if the output feature is not a temperature feature then we need to have BL1_ACT_Avg as oper_temp_rise_avg  variable.
